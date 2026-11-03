@@ -1,0 +1,65 @@
+README.md
+  s_eee5574c85d159::t_76bf32bf780fb7 1-7,16-43,45-49,52-135,138-152,154-155,157,159,176,179-183,185-189,192-194,196-219
+  s_eee5574c85d159::t_f93b385099a423 8-15,44,50-51,153,156,158,160-175,177-178,184,190-191,195
+  s_eee5574c85d159::t_eab06e45731004 136-137
+package.json
+  s_eee5574c85d159::t_1b1dc0c14a13ef 1-5,7-13
+  s_eee5574c85d159::t_2cc072a8dfe258 6
+wrangler.jsonc
+  s_eee5574c85d159::t_0d09ac510874d3 1-6,9,11-18
+  s_eee5574c85d159::t_2cc072a8dfe258 7-8
+  s_eee5574c85d159::t_9b79ad36813af1 10
+scripts/pre-commit
+  s_eee5574c85d159::t_1b1dc0c14a13ef 1-14
+scripts/build-kv.mjs
+  s_eee5574c85d159::t_0d09ac510874d3 1-23
+web/analytics.js
+  s_eee5574c85d159::t_c8d3c51fe56a40 1-72
+.github/workflows/deploy-pages.yml
+  s_eee5574c85d159::t_2cc072a8dfe258 1-36
+web/index.html
+  s_eee5574c85d159::t_e053a25211d168 10-11
+  s_eee5574c85d159::t_98a3c89524f21d 24,163,165-176
+  s_eee5574c85d159::t_598b6f5df6370f 75-78
+  s_eee5574c85d159::t_a503e3bbb8ed65 14-15
+  s_eee5574c85d159::t_d4b4317aa1b1f6 7-9
+  s_eee5574c85d159::t_505aa8601b2a01 12-13
+  s_eee5574c85d159::t_52a078320e139e 16-18,21-23
+  s_eee5574c85d159::t_2a99277b04f153 25-27,72-74
+  s_eee5574c85d159::t_f3866b42372221 79-81,160-162
+  s_eee5574c85d159::t_a69d342a1b1ccf 164
+  s_eee5574c85d159::t_ff7d1550897f09 177-178
+  s_eee5574c85d159::t_6dca2b71570477 1-6,19-20,28-71,82-159
+web/app.js
+  s_eee5574c85d159::t_edda05b0c3a1a5 1-110
+  s_eee5574c85d159::t_7d2ec65f1c14d2 111-127
+web/CNAME
+  s_eee5574c85d159::t_2cc072a8dfe258 1
+src/worker.js
+  s_eee5574c85d159::t_2cc072a8dfe258 11,161
+  s_eee5574c85d159::t_220b2f07906f2a 1-10,12-160,162-163
+.gitignore
+  s_eee5574c85d159::t_678544320ddc92 1-18
+package-lock.json
+  s_eee5574c85d159::t_d98a4e78099a0b 1-1591
+web/fonts/OFL.txt
+  s_eee5574c85d159::t_fa3f15930cc433 1-93
+web/styles.css
+  s_eee5574c85d159::t_e6d5f937586e2a 1-278
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "483cbe8e6e77eee427acad390535aefcfc0a041d",
+  "prompts": {},
+  "sessions": {
+    "s_eee5574c85d159": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ed66deb3-aae4-45db-80f7-da4c6a598900",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Guillermo López Leal <guillermo.lopezleal@vonage.com>"
+    }
+  }
+}
