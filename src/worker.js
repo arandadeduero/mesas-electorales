@@ -1,3 +1,6 @@
+import { DurableObject } from 'cloudflare:workers';
+import { claveNif, nifValido } from './nif.js';
+
 // API de consulta de miembros de mesa (Cloudflare Worker).
 //
 //   GET  /api/captcha   → { token, imagen }  (imagen: SVG en data URI, dibujado con trazos, sin texto legible)
@@ -7,12 +10,20 @@
 //
 // Datos: KV `MESAS`, clave = HMAC-SHA256(NIF_KEY, NIF) en hex. Nunca se guarda ni se registra el NIF en claro.
 // Captcha sin estado: el token lleva caducidad y la firma HMAC(CAPTCHA_KEY, caducidad.nonce.respuesta).
-// Límite por IP: binding de rate limiting (1 consulta cada 10 s, configurado en wrangler.jsonc).
+// Límite por IP: Durable Object `LimiteIp` (uno por IP, consistencia fuerte). El binding de rate limiting de Workers
+// es aproximado (por ubicación, consistencia eventual) y en producción no frenaba ráfagas, por eso no se usa.
 // El Worker solo atiende /api/*; la web estática está en GitHub Pages (en local, `npm run dev` la sirve con --assets).
 
-const LETRAS_NIF = 'TRWAGMYFPDXBNJZSQVHLCKE';
 const CAPTCHA_TTL_MS = 2 * 60 * 1000;
 const CAPTCHA_LEN = 5;
+
+// Una consulta cada 10 s por IP (como máximo 6 por minuto, 360 por hora…). Captchas: 10 por minuto.
+const LIMITES = {
+  consulta: { maximo: 1, ventanaMs: 10_000 },
+  captcha: { maximo: 10, ventanaMs: 60_000 },
+};
+// El estado de una IP se borra tras una hora sin peticiones.
+const OLVIDO_MS = 60 * 60 * 1000;
 
 // Fuente de trazos en una rejilla de 6×10 (y hacia abajo). Sin caracteres confundibles (0/O, 1/I/L, 5/S, 8/B, Z/2).
 const GLIFOS = {
@@ -68,14 +79,6 @@ function iguales(a, b) {
   return r === 0;
 }
 
-export function nifValido(nif) {
-  return /^\d{8}[A-Z]$/.test(nif) && LETRAS_NIF[Number(nif.slice(0, 8)) % 23] === nif[8];
-}
-
-export async function claveNif(nifKey, nif) {
-  return [...new Uint8Array(await hmac(nifKey, nif))].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
 function dibujarCaptcha(texto) {
   const f = (n) => n.toFixed(1);
   let trazos = '';
@@ -125,14 +128,31 @@ async function captchaValido(env, token, respuesta) {
   return iguales(firma, b64url(await hmac(env.CAPTCHA_KEY, `${caduca}.${nonce}.${respuesta}`)));
 }
 
-async function limitar(limitador, request) {
+// Un Durable Object por IP: guarda solo las marcas de tiempo recientes de cada tipo de petición.
+export class LimiteIp extends DurableObject {
+  async permitir(tipo) {
+    const { maximo, ventanaMs } = LIMITES[tipo];
+    const ahora = Date.now();
+    const recientes = ((await this.ctx.storage.get(tipo)) || []).filter((t) => ahora - t < ventanaMs);
+    if (recientes.length >= maximo) return false;
+    recientes.push(ahora);
+    await this.ctx.storage.put(tipo, recientes);
+    await this.ctx.storage.setAlarm(ahora + OLVIDO_MS);
+    return true;
+  }
+
+  async alarm() {
+    await this.ctx.storage.deleteAll();
+  }
+}
+
+async function limitar(env, request, tipo) {
   const ip = request.headers.get('CF-Connecting-IP') || 'local';
-  const { success } = await limitador.limit({ key: ip });
-  return success;
+  return env.LIMITE_IP.get(env.LIMITE_IP.idFromName(ip)).permitir(tipo);
 }
 
 async function consulta(request, env) {
-  if (!(await limitar(env.LIMITE_CONSULTA, request))) return json({ error: 'limite' }, 429);
+  if (!(await limitar(env, request, 'consulta'))) return json({ error: 'limite' }, 429);
   let datos;
   try {
     datos = await request.json();
@@ -154,7 +174,7 @@ export default {
   async fetch(request, env) {
     const { pathname } = new URL(request.url);
     if (pathname === '/api/captcha' && request.method === 'GET') {
-      if (!(await limitar(env.LIMITE_CAPTCHA, request))) return json({ error: 'limite' }, 429);
+      if (!(await limitar(env, request, 'captcha'))) return json({ error: 'limite' }, 429);
       return json(await nuevoCaptcha(env));
     }
     if (pathname === '/api/consulta' && request.method === 'POST') return consulta(request, env);

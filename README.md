@@ -42,8 +42,10 @@ Las actas (`pdf/`) y el listado generado (`data/`) contienen DNIs reales. **No s
 │   ├── app.js            Formulario: valida el NIF, pide el captcha y llama a /api
 │   ├── analytics.js      Google Analytics con consentimiento previo (igual que bienestaranimal y fiestas)
 │   ├── CNAME             Dominio de GitHub Pages
+│   ├── favicon.ico       Escudo del Ayuntamiento recortado en 1:1 (16, 32 y 48 px) + img/apple-touch-icon.png
 │   ├── fonts/  img/      Outfit (OFL) y logo del Ayuntamiento, servidos desde el propio sitio
-├── src/worker.js         API: /api/captcha y /api/consulta
+├── src/worker.js         API: /api/captcha, /api/consulta y Durable Object del límite por IP
+├── src/nif.js            Validación del NIF y clave HMAC (compartido con build-kv.mjs)
 ├── scripts/
 │   ├── build-kv.mjs      data/mesas_electorales.json → data/kv-mesas.json (claves HMAC) para cargar en KV
 │   └── pre-commit        Bloqueo de datos personales
@@ -64,11 +66,16 @@ Las actas (`pdf/`) y el listado generado (`data/`) contienen DNIs reales. **No s
 
 - **Captcha sin estado.** El token lleva la caducidad, un nonce y la firma
   `HMAC(CAPTCHA_KEY, caducidad.nonce.respuesta)`. El captcha se comprueba antes que el NIF.
-- **Límite por IP** (binding de rate limiting de Workers):
-  - Consultas: 1 cada 10 s, lo que equivale como máximo a 6 por minuto y 360 por hora.
+- **Límite por IP exacto** con un Durable Object (`LimiteIp`), uno por IP:
+  - Consultas: 1 cada 10 s, lo que equivale como máximo a 6 por minuto y 360 por hora. Cuentan todas, también
+    las de captcha incorrecto.
   - Captchas: 10 por minuto.
-  - El binding solo admite periodos de 10 o 60 s y cuenta por ubicación de Cloudflare. Si hiciera falta un tope
-    diario estricto, habría que usar un Durable Object.
+  - Los valores están en `LIMITES`, en `src/worker.js`.
+  - Solo se guardan marcas de tiempo, y se borran tras una hora sin peticiones.
+  - No se usa el binding de rate limiting de Workers porque es aproximado (por ubicación y con consistencia
+    eventual): en producción dejaba pasar ráfagas.
+  - Los Durable Objects exigen que la cuenta tenga un subdominio `workers.dev` (`willyaranda.workers.dev`). El
+    Worker tiene `workers_dev: false` y no se publica en él.
 
 ## Cómo se genera `data/mesas_electorales.json` a partir de los PDF
 
@@ -169,13 +176,16 @@ Cuenta `Willyaranda@gmail.com's Account`, zona `arandadeduero.dev`.
 
 **Ya creado:**
 - Registro DNS: `CNAME mesaselectorales → arandadeduero.github.io`, con proxy.
+- HTTPS obligatorio para toda la zona: «Always Use HTTPS», HSTS (`includeSubDomains; preload`) y TLS 1.2 como
+  mínimo. Además, `.dev` está en la lista HSTS de los navegadores.
 - KV `mesas-electorales-MESAS` (id en `wrangler.jsonc`).
 
 **Para desplegar o actualizar:**
 
 1. **Iniciar sesión:** `npx wrangler login`
-2. **Secretos de producción** (solo la primera vez). Son claves aleatorias distintas de las de local. Guarda la
-   `NIF_KEY` en un gestor de contraseñas: hace falta para regenerar el KV.
+2. **Secretos de producción** (solo la primera vez; ya están creados). Son claves aleatorias distintas de las de
+   local. Están en `.dev.vars.production`, que git ignora. Guárdalas también en un gestor de contraseñas: sin
+   `NIF_KEY` no se puede regenerar el KV.
    ```sh
    export NIF_KEY=$(openssl rand -hex 32)
    printf %s "$NIF_KEY" | npx wrangler secret put NIF_KEY

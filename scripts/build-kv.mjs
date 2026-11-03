@@ -2,7 +2,7 @@
 // La clave de cada registro es HMAC-SHA256(NIF_KEY, NIF): el NIF no se sube en claro a Cloudflare.
 // Uso: NIF_KEY=… node scripts/build-kv.mjs   (o con NIF_KEY en .dev.vars)
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { claveNif, nifValido } from '../src/worker.js';
+import { claveNif, nifValido } from '../src/nif.js';
 
 let nifKey = process.env.NIF_KEY;
 if (!nifKey && existsSync('.dev.vars')) {

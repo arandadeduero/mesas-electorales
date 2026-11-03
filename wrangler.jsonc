@@ -8,11 +8,9 @@
   "routes": [{ "pattern": "mesaselectorales.arandadeduero.dev/api/*", "zone_name": "arandadeduero.dev" }],
   // Listado de miembros de mesa (claves = HMAC del NIF). Se carga con `npm run kv:build` + `wrangler kv bulk put`.
   "kv_namespaces": [{ "binding": "MESAS", "id": "13b258fed94e464d8c9330627b7e9726" }],
-  // Límites por IP. El binding solo admite periodos de 10 o 60 s.
-  "ratelimits": [
-    { "name": "LIMITE_CONSULTA", "namespace_id": "1001", "simple": { "limit": 1, "period": 10 } },
-    { "name": "LIMITE_CAPTCHA", "namespace_id": "1002", "simple": { "limit": 10, "period": 60 } }
-  ],
+  // Límite por IP exacto: un Durable Object por IP (1 consulta cada 10 s, 10 captchas por minuto; ver LIMITES en src/worker.js).
+  "durable_objects": { "bindings": [{ "name": "LIMITE_IP", "class_name": "LimiteIp" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["LimiteIp"] }],
   "observability": { "enabled": false }
   // Secretos (no van aquí): NIF_KEY y CAPTCHA_KEY, con `npx wrangler secret put`. En local, en .dev.vars.
 }
