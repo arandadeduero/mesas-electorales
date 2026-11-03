@@ -1,0 +1,21 @@
+README.md
+  s_eee5574c85d159::t_2dc2711b4dc5e6 292-297
+LICENSE
+  s_eee5574c85d159::t_2dc2711b4dc5e6 1-292
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f9cf99fb808f02a616a7afff3a45bbf9b671bea1",
+  "prompts": {},
+  "sessions": {
+    "s_eee5574c85d159": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ed66deb3-aae4-45db-80f7-da4c6a598900",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Guillermo López Leal <guillermo.lopezleal@vonage.com>"
+    }
+  }
+}
