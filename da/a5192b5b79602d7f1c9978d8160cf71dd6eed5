@@ -1,0 +1,19 @@
+web/index.html
+  s_eee5574c85d159::t_62fffc21cbc552 14,26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "daa5192b5b79602d7f1c9978d8160cf71dd6eed5",
+  "prompts": {},
+  "sessions": {
+    "s_eee5574c85d159": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ed66deb3-aae4-45db-80f7-da4c6a598900",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Guillermo López Leal <guillermo.lopezleal@vonage.com>"
+    }
+  }
+}
