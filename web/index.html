@@ -6,14 +6,16 @@
   <meta name="theme-color" content="#0083c1">
   <title>Consulta de miembros de mesa — Elecciones Generales 29 de noviembre de 2026 — Ayuntamiento de Aranda de Duero</title>
   <meta name="description" content="Compruebe si ha sido designado presidente, vocal o suplente de una mesa electoral en Aranda de Duero para las Elecciones Generales del 29 de noviembre de 2026.">
-  <meta name="robots" content="noindex">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; style-src 'self'; script-src 'self' https://www.googletagmanager.com; font-src 'self'; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <link rel="canonical" href="https://mesaselectorales.arandadeduero.dev/">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; style-src 'self'; script-src 'self' https://www.googletagmanager.com https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="no-referrer">
   <link rel="icon" href="favicon.ico?v=1" sizes="16x16 32x32 48x48">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png?v=1">
   <link rel="preload" href="fonts/outfit-variable-latin.woff2?v=1" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=2">
-  <script src="app.js?v=2" defer></script>
+  <link rel="stylesheet" href="styles.css?v=4">
+  <script src="app.js?v=5" defer></script>
+  <!-- Cloudflare Turnstile (captcha). Se renderiza de forma explícita desde app.js -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" defer></script>
   <script src="analytics.js?v=1" defer></script>
 </head>
 <body>
@@ -32,33 +34,36 @@
       <h1 class="hero__title">Resultado del sorteo de miembros de mesa</h1>
       <p class="hero__lead">Compruebe si ha sido designado presidente, vocal o suplente de una mesa electoral.
         Solo para personas inscritas en el censo electoral del municipio de Aranda de Duero.</p>
+      <aside class="aviso-legal" aria-label="Aviso legal">
+        <p><strong>Esta web es meramente informativa y no tiene validez legal.</strong> La designación como
+          miembro de mesa se comunica mediante <strong>notificación personal</strong> a cada persona designada, que
+          es el único documento con efectos legales. Los plazos para alegar cuentan desde esa notificación.</p>
+      </aside>
     </section>
 
     <section class="card consulta" aria-labelledby="consulta-titulo">
       <h2 id="consulta-titulo" class="card__title">Consultar con su NIF</h2>
       <ol class="pasos">
         <li>Introduzca los 8 dígitos y la letra de su NIF, sin guiones ni espacios.</li>
-        <li>Escriba los caracteres que aparecen en la imagen.</li>
+        <li>Complete la verificación de seguridad (normalmente es automática).</li>
         <li>Pulse el botón <strong>Consultar</strong>.</li>
       </ol>
 
-      <form id="form-consulta" class="form" novalidate>
+      <form id="form-consulta" class="form" method="post" novalidate>
         <div class="form__field">
           <label for="nif">NIF <span class="form__required">(obligatorio)</span></label>
-          <input id="nif" name="nif" type="text" inputmode="text" autocomplete="off" spellcheck="false"
+          <input id="nif" type="text" inputmode="text" autocomplete="off" spellcheck="false"
                  maxlength="9" placeholder="12345678Z" required aria-describedby="nif-error">
           <p class="form__error" id="nif-error" aria-live="polite"></p>
         </div>
 
         <div class="form__field">
-          <label for="captcha">Código de seguridad <span class="form__required">(obligatorio)</span></label>
-          <div class="captcha">
-            <img id="captcha-img" class="captcha__img" alt="Código de seguridad: escriba los caracteres de la imagen" width="200" height="64">
-            <button type="button" id="captcha-reload" class="btn btn--ghost" aria-label="Cargar otra imagen">↻ Otra imagen</button>
-          </div>
-          <input id="captcha" name="captcha" type="text" autocomplete="off" spellcheck="false" maxlength="8"
-                 required aria-describedby="captcha-error">
+          <p class="form__label">Verificación de seguridad</p>
+          <div id="widget-turnstile" class="turnstile"></div>
           <p class="form__error" id="captcha-error" aria-live="polite"></p>
+          <p class="form__hint">Para proteger esta consulta de abusos se usa Cloudflare Turnstile, que puede comprobar
+            datos técnicos de su navegador. Más información en la
+            <a href="https://www.cloudflare.com/es-es/privacypolicy/" rel="noopener">política de privacidad de Cloudflare</a>.</p>
         </div>
 
         <button type="submit" class="btn btn--primary" id="btn-consultar">Consultar</button>
@@ -158,6 +163,8 @@
   <footer class="site-footer">
     <div class="container site-footer__inner">
       <p>Ayuntamiento de Aranda de Duero · Plaza Mayor, 1 · 09400 Aranda de Duero (Burgos)</p>
+      <p class="fineprint">Web meramente informativa, sin validez legal. La designación de los miembros de mesa se
+        comunica por notificación personal.</p>
       <p class="fineprint">
         <a href="https://www.arandadeduero.es/">arandadeduero.es</a>
         · <a href="https://www.arandadeduero.es/politica-privacidad/">Política de privacidad</a>

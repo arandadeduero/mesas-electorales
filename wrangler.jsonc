@@ -11,6 +11,12 @@
   // Límite por IP exacto: un Durable Object por IP (1 consulta cada 10 s, 10 captchas por minuto; ver LIMITES en src/worker.js).
   "durable_objects": { "bindings": [{ "name": "LIMITE_IP", "class_name": "LimiteIp" }] },
   "migrations": [{ "tag": "v1", "new_sqlite_classes": ["LimiteIp"] }],
+  // Dominios aceptados en la respuesta de Turnstile (Siteverify). En local, .dev.vars sustituye estas variables.
+  "vars": {
+    "TURNSTILE_HOSTNAMES": "mesaselectorales.arandadeduero.dev",
+    // Origin aceptado en POST /api/consulta (protección frente a peticiones desde otras webs)
+    "ORIGENES": "https://mesaselectorales.arandadeduero.dev"
+  },
   "observability": { "enabled": false }
-  // Secretos (no van aquí): NIF_KEY y CAPTCHA_KEY, con `npx wrangler secret put`. En local, en .dev.vars.
+  // Secretos (no van aquí): NIF_KEY y TURNSTILE_SECRET, con `wrangler secret put`. En local, en .dev.vars.
 }

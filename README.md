@@ -1,9 +1,12 @@
 # Mesas electorales · Aranda de Duero
 
 Consulta pública del resultado del sorteo de miembros de mesa (presidentes, vocales y suplentes) para las
-Elecciones Generales del 29 de noviembre de 2026 en Aranda de Duero. La persona escribe su NIF y un código de
-seguridad y la web le dice si ha sido designada y para qué cargo y mesa. Incluye además la información legal
+Elecciones Generales del 29 de noviembre de 2026 en Aranda de Duero. La persona escribe su NIF, pasa la verificación de
+Cloudflare Turnstile y la web le dice si ha sido designada y para qué cargo y mesa. Incluye además la información legal
 básica: fechas, dieta, permisos y causas de excusa.
+
+**La web es meramente informativa y no tiene validez legal:** la designación se comunica mediante notificación
+personal a cada miembro de mesa. La página lo indica en la cabecera, en cada resultado y en el pie.
 
 Se publica en **https://mesaselectorales.arandadeduero.dev**:
 
@@ -39,17 +42,17 @@ Las actas (`pdf/`) y el listado generado (`data/`) contienen DNIs reales. **No s
 ├── web/                  Web estática (se sirve tal cual, sin compilar)
 │   ├── index.html        Página única: formulario + información legal
 │   ├── styles.css        Paleta corporativa del Ayuntamiento (la de wp-tema-arandadeduero) y fuente Outfit
-│   ├── app.js            Formulario: valida el NIF, pide el captcha y llama a /api
+│   ├── app.js            Formulario: valida el NIF, muestra Turnstile y llama a /api/consulta
 │   ├── analytics.js      Google Analytics con consentimiento previo (igual que bienestaranimal y fiestas)
 │   ├── CNAME             Dominio de GitHub Pages
 │   ├── favicon.ico       Escudo del Ayuntamiento recortado en 1:1 (16, 32 y 48 px) + img/apple-touch-icon.png
 │   ├── fonts/  img/      Outfit (OFL) y logo del Ayuntamiento, servidos desde el propio sitio
-├── src/worker.js         API: /api/captcha, /api/consulta y Durable Object del límite por IP
+├── src/worker.js         API: /api/consulta (Siteverify de Turnstile) y Durable Object del límite por IP
 ├── src/nif.js            Validación del NIF y clave HMAC (compartido con build-kv.mjs)
 ├── scripts/
 │   ├── build-kv.mjs      data/mesas_electorales.json → data/kv-mesas.json (claves HMAC) para cargar en KV
 │   └── pre-commit        Bloqueo de datos personales
-├── wrangler.jsonc        Configuración del Worker: ruta /api/*, KV y límites por IP
+├── wrangler.jsonc        Configuración del Worker: ruta /api/*, KV, Durable Object y variables
 ├── .github/workflows/deploy-pages.yml   Publica web/ en GitHub Pages
 ├── pdf/                  (no versionado) Actas originales de la Junta Electoral de Zona
 └── data/                 (no versionado) Listado generado y fichero para KV
@@ -59,23 +62,49 @@ Las actas (`pdf/`) y el listado generado (`data/`) contienen DNIs reales. **No s
 
 | Ruta | Respuesta |
 |---|---|
-| `GET /api/captcha` | `{ token, imagen }`. La imagen es un SVG dibujado con trazos, sin texto legible, y caduca a los 2 minutos. |
-| `POST /api/consulta` con `{ nif, captcha, token }` | `200 { designado: false }` o `200 { designado: true, distrito, seccion, mesa, cargo, tipo, orden }` |
+| `POST /api/consulta` con `{ nif, turnstile }` | `200 { designado: false }` o `200 { designado: true, distrito, seccion, mesa, cargo, tipo, orden }` |
 | | `400 { error: "captcha" \| "nif" \| "peticion" }` |
+| | `403`: `Origin` no permitido o cuerpo que no es `application/json` |
+| | `413`: cuerpo de más de 4 KB |
 | | `429 { error: "limite" }` |
 
-- **Captcha sin estado.** El token lleva la caducidad, un nonce y la firma
-  `HMAC(CAPTCHA_KEY, caducidad.nonce.respuesta)`. El captcha se comprueba antes que el NIF.
-- **Límite por IP exacto** con un Durable Object (`LimiteIp`), uno por IP:
-  - Consultas: 1 cada 10 s, lo que equivale como máximo a 6 por minuto y 360 por hora. Cuentan todas, también
-    las de captcha incorrecto.
-  - Captchas: 10 por minuto.
-  - Los valores están en `LIMITES`, en `src/worker.js`.
+El orden de las comprobaciones es: origen → límite por IP → tamaño y JSON → Turnstile → formato del NIF →
+búsqueda en KV. Sin un Turnstile válido no se revela nada sobre el NIF.
+
+- **Captcha: Cloudflare Turnstile** (widget `mesas-electorales`, modo *managed*, sitekey
+  `0x4AAAAAAFyJA3X6ExeE2YSl` en `web/app.js`).
+  - El Worker valida cada token en Siteverify y exige `success`, la acción `consulta` y un hostname de
+    `TURNSTILE_HOSTNAMES`.
+  - Cada token vale una sola vez: el navegador reinicia el widget tras cada consulta.
+  - Si Siteverify falla o tarda más de 10 s, la consulta se rechaza.
+- **Origen:** solo se aceptan peticiones con `Origin` de `ORIGENES` y `Content-Type: application/json`. Así otra
+  web no puede lanzar consultas desde el navegador de un visitante ni gastarle su cupo.
+- **Límite por IP exacto** con un Durable Object (`LimiteIp`), uno por IP, o por bloque /64 en IPv6:
+  - 1 consulta cada 10 s, lo que equivale como máximo a 6 por minuto y 360 por hora.
+  - Cuentan todas las peticiones del propio origen, también las de captcha incorrecto.
+  - El valor está en `LIMITES`, en `src/worker.js`.
   - Solo se guardan marcas de tiempo, y se borran tras una hora sin peticiones.
   - No se usa el binding de rate limiting de Workers porque es aproximado (por ubicación y con consistencia
     eventual): en producción dejaba pasar ráfagas.
   - Los Durable Objects exigen que la cuenta tenga un subdominio `workers.dev` (`willyaranda.workers.dev`). El
     Worker tiene `workers_dev: false` y no se publica en él.
+
+## Seguridad: por qué el listado no se puede descargar
+
+- **Repositorio:** `pdf/` y `data/` están en `.gitignore`, el *hook* `scripts/pre-commit` bloquea esos ficheros
+  y cualquier cosa con forma de DNI, y el workflow de Pages aborta si `web/` contiene un PDF o un JSON.
+  Comprobado el 3-11-2026: ningún commit, rama ni artefacto de Actions contiene datos.
+- **GitHub Pages** solo publica `web/`, que no tiene datos.
+- **KV:** no tiene URL pública. Solo se accede con credenciales de la cuenta o a través del Worker, que solo hace
+  `MESAS.get(HMAC(NIF))`: no hay ningún `list` ni ruta que devuelva más de un registro. Las claves son HMAC, así
+  que ni con acceso a la cuenta se sabe a quién pertenece cada registro sin `NIF_KEY`. Los valores no llevan DNI
+  ni nombre.
+- **Enumeración por fuerza bruta:** hay 10⁸ NIF posibles. Con Turnstile por consulta y 1 consulta cada 10 s por
+  IP (o /64), recorrerlos no es viable.
+- **Inyección:** no hay base de datos SQL ni plantillas en el servidor. El NIF se valida con
+  `/^\d{8}[A-Z]$/` y la letra de control, y solo se usa como entrada del HMAC. En el navegador todo se pinta con
+  `textContent`, nunca con `innerHTML`, y la CSP no permite scripts en línea.
+- **Logs:** `observability` está desactivado y el Worker no registra el NIF.
 
 ## Cómo se genera `data/mesas_electorales.json` a partir de los PDF
 
@@ -153,12 +182,26 @@ Requisitos: Node 20 o superior.
 
 ```sh
 npm install
-# Secretos locales (no versionados)
-printf 'NIF_KEY="%s"\nCAPTCHA_KEY="%s"\n' "$(openssl rand -hex 32)" "$(openssl rand -hex 32)" > .dev.vars
+# Variables locales (no versionadas). Turnstile usa sus claves de PRUEBA públicas, que siempre aprueban.
+cat > .dev.vars <<VARS
+NIF_KEY="$(openssl rand -hex 32)"
+TURNSTILE_SECRET="1x0000000000000000000000000000000AA"
+TURNSTILE_HOSTNAMES="example.com"
+TURNSTILE_PRUEBAS="1"
+ORIGENES="http://mesaselectorales.arandadeduero.dev"
+VARS
 npm run kv:build                                                     # → data/kv-mesas.json
-npx wrangler kv bulk put data/kv-mesas.json --binding MESAS --local
+npx wrangler kv bulk put data/kv-mesas.json --binding MESAS --local && rm data/kv-mesas.json
 npm run dev                                                          # web + API en http://localhost:8787
 ```
+
+Notas sobre el entorno local:
+- **Claves de prueba de Turnstile:** devuelven `hostname: example.com` y ninguna acción, por eso existe
+  `TURNSTILE_PRUEBAS`. Esa variable no debe existir en producción, y aunque existiera no tendría efecto con el
+  secreto real.
+- **`ORIGENES`:** `wrangler dev` reescribe la cabecera `Origin` al dominio de la ruta, en `http`. Por eso el valor
+  local no es `127.0.0.1`.
+- **KV local:** se guarda por id de namespace. Si cambia el id en `wrangler.jsonc`, hay que volver a cargarlo.
 
 ## Despliegue
 
@@ -179,21 +222,19 @@ Cuenta `Willyaranda@gmail.com's Account`, zona `arandadeduero.dev`.
 - HTTPS obligatorio para toda la zona: «Always Use HTTPS», HSTS (`includeSubDomains; preload`) y TLS 1.2 como
   mínimo. Además, `.dev` está en la lista HSTS de los navegadores.
 - KV `mesas-electorales-MESAS` (id en `wrangler.jsonc`).
+- Widget de Turnstile `mesas-electorales`, solo para `mesaselectorales.arandadeduero.dev`.
+- Secretos del Worker: `NIF_KEY` y `TURNSTILE_SECRET`. El de Turnstile se copió del widget al Worker sin pasar
+  por disco. Si hubiera que rotarlo, se hace desde el panel de Turnstile y se vuelve a poner con
+  `wrangler secret put TURNSTILE_SECRET`.
 
 **Para desplegar o actualizar:**
 
 1. **Iniciar sesión:** `npx wrangler login`
-2. **Secretos de producción** (solo la primera vez; ya están creados). Son claves aleatorias distintas de las de
-   local. Están en `.dev.vars.production`, que git ignora. Guárdalas también en un gestor de contraseñas: sin
-   `NIF_KEY` no se puede regenerar el KV.
+2. **`NIF_KEY` de producción** (ya creada; **no regenerarla**, o el KV dejaría de coincidir). Está en
+   `.dev.vars.production`, que git ignora. Guárdala también en un gestor de contraseñas.
+3. **Cargar los datos** con esa misma `NIF_KEY`:
    ```sh
-   export NIF_KEY=$(openssl rand -hex 32)
-   printf %s "$NIF_KEY" | npx wrangler secret put NIF_KEY
-   openssl rand -hex 32 | tr -d '\n' | npx wrangler secret put CAPTCHA_KEY
-   ```
-3. **Cargar los datos** con la misma `NIF_KEY` de producción:
-   ```sh
-   NIF_KEY="$NIF_KEY" npm run kv:build
+   NIF_KEY="$(sed -n 's/^NIF_KEY="\(.*\)"$/\1/p' .dev.vars.production)" npm run kv:build
    npx wrangler kv bulk put data/kv-mesas.json --binding MESAS --remote
    rm data/kv-mesas.json
    ```
@@ -201,8 +242,7 @@ Cuenta `Willyaranda@gmail.com's Account`, zona `arandadeduero.dev`.
 5. **Comprobar** en la web publicada:
    - Un NIF ficticio (`12345678Z`) debe devolver «No ha sido designado».
    - Dos consultas seguidas deben dar el aviso de límite.
-   - `/api/captcha` debe responder con `Cache-Control: no-store`.
-6. **Cuando se haga pública:** quitar `<meta name="robots" content="noindex">` de `web/index.html`.
+   - Una petición con otro `Origin` debe dar 403.
 
 **Si cambian los datos** (por ejemplo, una sustitución tras una alegación): regenerar el JSON, repetir el paso 4
 y, si se ha quitado algún registro, borrar su clave con `npx wrangler kv key delete <hash> --binding MESAS
@@ -219,7 +259,10 @@ Google Analytics (`G-BXMC22W46S`, la misma propiedad que bienestaranimal y fiest
 - Denegar tiene el mismo peso visual que Aceptar.
 - Se respeta *Do Not Track*.
 - Solo se miden visitas: el NIF y el resultado de la consulta nunca se envían a Google. El formulario no cambia
-  la URL ni lanza eventos.
+  la URL ni lanza eventos. Además, el campo NIF no tiene `name` y la CSP lleva `form-action 'none'`, así que ni
+  un envío nativo podría poner el NIF en una URL.
+- Turnstile (`challenges.cloudflare.com`) es el otro recurso de terceros. La página lo explica junto al widget,
+  con enlace a la política de privacidad de Cloudflare.
 
 ## Fuentes de la información legal
 
