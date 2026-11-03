@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0083c1">
+  <title>Consulta de miembros de mesa — Elecciones Generales 29 de noviembre de 2026 — Ayuntamiento de Aranda de Duero</title>
+  <meta name="description" content="Compruebe si ha sido designado presidente, vocal o suplente de una mesa electoral en Aranda de Duero para las Elecciones Generales del 29 de noviembre de 2026.">
+  <meta name="robots" content="noindex">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; style-src 'self'; script-src 'self' https://www.googletagmanager.com; font-src 'self'; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <link rel="preload" href="fonts/outfit-variable-latin.woff2?v=1" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css?v=2">
+  <script src="app.js?v=2" defer></script>
+  <script src="analytics.js?v=1" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <a class="brand" href="https://www.arandadeduero.es/">
+        <img class="brand__logo" src="img/logo-ayto-aranda.png" alt="Ayuntamiento de Aranda de Duero" width="768" height="196">
+      </a>
+      <span class="topbar__section">Elecciones Generales 2026</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <p class="hero__kicker">Elecciones Generales · 29 de noviembre de 2026</p>
+      <h1 class="hero__title">Resultado del sorteo de miembros de mesa</h1>
+      <p class="hero__lead">Compruebe si ha sido designado presidente, vocal o suplente de una mesa electoral.
+        Solo para personas inscritas en el censo electoral del municipio de Aranda de Duero.</p>
+    </section>
+
+    <section class="card consulta" aria-labelledby="consulta-titulo">
+      <h2 id="consulta-titulo" class="card__title">Consultar con su NIF</h2>
+      <ol class="pasos">
+        <li>Introduzca los 8 dígitos y la letra de su NIF, sin guiones ni espacios.</li>
+        <li>Escriba los caracteres que aparecen en la imagen.</li>
+        <li>Pulse el botón <strong>Consultar</strong>.</li>
+      </ol>
+
+      <form id="form-consulta" class="form" novalidate>
+        <div class="form__field">
+          <label for="nif">NIF <span class="form__required">(obligatorio)</span></label>
+          <input id="nif" name="nif" type="text" inputmode="text" autocomplete="off" spellcheck="false"
+                 maxlength="9" placeholder="12345678Z" required aria-describedby="nif-error">
+          <p class="form__error" id="nif-error" aria-live="polite"></p>
+        </div>
+
+        <div class="form__field">
+          <label for="captcha">Código de seguridad <span class="form__required">(obligatorio)</span></label>
+          <div class="captcha">
+            <img id="captcha-img" class="captcha__img" alt="Código de seguridad: escriba los caracteres de la imagen" width="200" height="64">
+            <button type="button" id="captcha-reload" class="btn btn--ghost" aria-label="Cargar otra imagen">↻ Otra imagen</button>
+          </div>
+          <input id="captcha" name="captcha" type="text" autocomplete="off" spellcheck="false" maxlength="8"
+                 required aria-describedby="captcha-error">
+          <p class="form__error" id="captcha-error" aria-live="polite"></p>
+        </div>
+
+        <button type="submit" class="btn btn--primary" id="btn-consultar">Consultar</button>
+      </form>
+
+      <div id="resultado" class="resultado" aria-live="polite" hidden></div>
+    </section>
+
+    <section class="info" aria-labelledby="info-titulo">
+      <h2 id="info-titulo" class="section-title">Si le toca mesa electoral: fechas, dieta y permisos</h2>
+      <p class="section-lead">Lo esencial para presidentes, vocales y suplentes de las mesas del 29 de noviembre.</p>
+
+      <div class="datos">
+        <article class="dato">
+          <h3 class="dato__label">Sorteo</h3>
+          <p class="dato__valor">3 nov, 9:30</p>
+          <p>El Ayuntamiento de Aranda de Duero lo celebró en sesión plenaria pública
+            (<a href="https://www.youtube.com/watch?v=9F-UewQ92GA" rel="noopener">vídeo del pleno</a>), entre los electores
+            de cada mesa menores de 70 años que sepan leer y escribir. Debe notificarle la designación en un plazo de tres días.</p>
+        </article>
+        <article class="dato">
+          <h3 class="dato__label">Para alegar</h3>
+          <p class="dato__valor">7 días</p>
+          <p>Desde la notificación, ante la Junta Electoral de Zona y con justificante. La Junta resuelve en cinco días, sin recurso.</p>
+        </article>
+        <article class="dato">
+          <h3 class="dato__label">A qué hora</h3>
+          <p class="dato__valor">8:00</p>
+          <p>Titulares y suplentes, el 29 de noviembre en el colegio electoral.</p>
+        </article>
+        <article class="dato">
+          <h3 class="dato__label">Dieta</h3>
+          <p class="dato__valor">75 euros</p>
+          <p>Para los titulares. Los suplentes cobran solo si pasan a ser titulares.</p>
+        </article>
+        <article class="dato">
+          <h3 class="dato__label">Permiso</h3>
+          <p class="dato__valor">Día 29 y 5 horas el 30</p>
+          <p>Si trabaja por cuenta ajena o es empleado público: permiso retribuido de jornada completa el domingo si ese día le toca trabajar, y cinco horas menos de jornada el lunes 30.</p>
+        </article>
+        <article class="dato dato--aviso">
+          <h3 class="dato__label">Si no va</h3>
+          <p class="dato__valor">Es delito</p>
+          <p>De tres meses a un año de prisión o multa de seis a 24 meses, si no hay causa justificada.</p>
+        </article>
+      </div>
+
+      <p class="nota">Si tiene 65 años o más, puede renunciar en el plazo de siete días desde la notificación. Durante el
+        ejercicio de su función, la Seguridad Social le protege, sea titular o suplente, como en un accidente de trabajo.</p>
+      <p class="fuente">Fuente: LOREG, Real Decreto 806/2026, RD 605/1999, Orden INT/650/2026 e Instrucción 6/2011 de la Junta Electoral Central</p>
+    </section>
+
+    <section class="card excusas" aria-labelledby="excusas-titulo">
+      <h2 id="excusas-titulo" class="section-title">Las causas que permiten no formar parte de una mesa electoral</h2>
+      <p>Si alega y acredita alguna de estas causas ante la Junta Electoral de Zona en el plazo de siete días, la Junta
+        debe relevarle del cargo, según la Instrucción 6/2011, de 28 de abril, de la Junta Electoral Central (modificada
+        por última vez por la Instrucción 2/2025, de 30 de enero):</p>
+      <ul class="lista">
+        <li>Tener entre 65 y 69 años: puede renunciar sin más justificación (artículo 26.2 de la LOREG).</li>
+        <li>Tener reconocida una discapacidad, cualquiera que sea su grado.</li>
+        <li>Ser pensionista de incapacidad permanente absoluta y gran invalidez.</li>
+        <li>Estar en situación de incapacidad temporal para el trabajo acreditada mediante la correspondiente baja médica.</li>
+        <li>Estar embarazada de seis meses o más, o encontrarse en el período de descanso por nacimiento, adopción, guarda con fines de adopción o acogimiento (madre biológica, otro progenitor, adoptantes, guardadores o acogedores).</li>
+        <li>Cuidar a un lactante, como progenitor, adoptante, guardador o acogedor.</li>
+        <li>Tener a su cuidado directo y continuo, por guarda legal, a menores de 12 años o a personas con discapacidad.</li>
+        <li>Cuidar de forma directa y continua a un familiar hasta el segundo grado que no pueda valerse por sí mismo por edad, accidente o enfermedad.</li>
+        <li>Estar internado en un centro penitenciario o en un hospital psiquiátrico.</li>
+        <li>Haber formado parte de una mesa electoral al menos tres veces en los últimos diez años, siempre que la mesa pueda seguir formándose con electores de esa misma mesa.</li>
+        <li>Ser víctima de un delito, declarado o presunto, con una resolución judicial en vigor que imponga al condenado o investigado una prohibición de aproximarse a usted, cuando esa persona esté inscrita en el censo de alguna mesa de su mismo colegio electoral.</li>
+      </ul>
+
+      <h3 class="subtitle">Causas que valora la Junta Electoral de Zona</h3>
+      <p>Personales:</p>
+      <ul class="lista">
+        <li>Una lesión, dolencia o enfermedad psíquica o física que no haya dado lugar a baja médica, pero impida o haga particularmente difícil o penoso ejercer las funciones de una mesa electoral.</li>
+        <li>Condición de pensionista de incapacidad permanente total para una determinada profesión.</li>
+        <li>Situación de riesgo durante el embarazo o durante la lactancia natural.</li>
+        <li>Una operación o pruebas clínicas relevantes el mismo día de la votación, los días inmediatamente anteriores o el día siguiente, siempre que sea inaplazable.</li>
+        <li>Pertenecer a confesiones o comunidades religiosas en las que el ideario o el régimen de clausura resulten contrarios o incompatibles con la participación en una mesa electoral.</li>
+        <li>Cambio de residencia habitual a otra comunidad autónoma cuando se justifique la dificultad de poder formar parte de una mesa.</li>
+      </ul>
+      <p>Familiares:</p>
+      <ul class="lista">
+        <li>Un acontecimiento familiar de especial relevancia e inaplazable el día de la votación, del que usted sea protagonista o un familiar hasta el segundo grado.</li>
+        <li>Ser madre o padre de menores de 14 años en una familia monoparental, o cuando el otro progenitor no pueda ocuparse del menor ese día.</li>
+      </ul>
+      <p>Profesionales:</p>
+      <ul class="lista">
+        <li>Trabajar el día de la votación para juntas electorales, juzgados o administraciones con funciones electorales, o en servicios esenciales (sanitarios, protección civil, bomberos…); dirigir un medio de comunicación o sus servicios informativos; o participar como profesional en un acontecimiento público previsto antes de la convocatoria que tendría que suspenderse sin usted.</li>
+      </ul>
+      <p>La lista no es cerrada: la Junta Electoral de Zona puede valorar otras situaciones parecidas. Toda causa debe
+        acreditarse con documentos.</p>
+      <p class="nota">Las alegaciones se presentan ante la <strong>Junta Electoral de Zona de Aranda de Duero</strong>.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container site-footer__inner">
+      <p>Ayuntamiento de Aranda de Duero · Plaza Mayor, 1 · 09400 Aranda de Duero (Burgos)</p>
+      <p class="fineprint">
+        <a href="https://www.arandadeduero.es/">arandadeduero.es</a>
+        · <a href="https://www.arandadeduero.es/politica-privacidad/">Política de privacidad</a>
+      </p>
+    </div>
+  </footer>
+
+  <div class="analytics-consent" data-analytics-consent role="region" aria-label="Aviso de privacidad y analítica" hidden>
+    <p class="analytics-consent-text">
+      Usamos Google Analytics para saber cómo se utiliza esta web. El script no se carga ni envía ningún dato hasta que
+      pulsa «Aceptar», y nunca se envía su NIF ni el resultado de la consulta. Más información en la
+      <a href="https://www.arandadeduero.es/politica-privacidad/" target="_blank" rel="noopener">política de privacidad</a>.
+    </p>
+    <div class="analytics-consent-actions">
+      <button class="analytics-consent-btn" type="button" data-analytics-consent-deny>Denegar</button>
+      <button class="analytics-consent-btn" type="button" data-analytics-consent-accept>Aceptar</button>
+    </div>
+  </div>
+</body>
+</html>

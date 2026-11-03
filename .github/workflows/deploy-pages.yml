@@ -1,0 +1,36 @@
+name: Desplegar en GitHub Pages
+
+# Solo se publica web/ (estático). La API /api/* la sirve el Worker de Cloudflare (npm run deploy).
+on:
+  push:
+    branches: [main]
+    paths: ['web/**', '.github/workflows/deploy-pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un despliegue a la vez; no cancelar el que esté en curso.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/configure-pages@v6
+      - name: Comprobar que no se publica ningún dato personal
+        run: |
+          if find web -iname '*.pdf' -o -iname '*.json' | grep -q .; then echo "web/ contiene PDF o JSON" >&2; exit 1; fi
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: web
+      - id: deployment
+        uses: actions/deploy-pages@v5

@@ -1,0 +1,13 @@
+{
+  "name": "mesas-electorales",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev --assets web",
+    "deploy": "wrangler deploy",
+    "kv:build": "node scripts/build-kv.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "^4.157.0"
+  }
+}

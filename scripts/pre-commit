@@ -1,0 +1,14 @@
+#!/bin/sh
+# Bloquea cualquier commit con datos personales (actas, listado de miembros de mesa o claves).
+# Instalación: cp scripts/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+prohibidos=$(git diff --cached --name-only --diff-filter=ACMR | grep -Ei '(^|/)(pdf|data)/|\.pdf$|mesas_electorales.*\.json$|kv-.*\.json$|\.dev\.vars' )
+if [ -n "$prohibidos" ]; then
+  echo "ERROR: estos ficheros contienen datos personales o secretos y no se pueden commitear:" >&2
+  echo "$prohibidos" >&2
+  exit 1
+fi
+if git diff --cached -U0 | grep -E '^\+' | grep -Eq '[0-9]{8}[A-HJ-NP-TV-Z]\b' && \
+   git diff --cached -U0 | grep -E '^\+' | grep -Ev '12345678Z|00000000T' | grep -Eq '[0-9]{8}[A-HJ-NP-TV-Z]\b'; then
+  echo "ERROR: el commit contiene algo con forma de DNI. Revísalo antes de commitear." >&2
+  exit 1
+fi
