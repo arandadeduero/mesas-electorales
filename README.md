@@ -79,7 +79,9 @@ búsqueda en KV. Sin un Turnstile válido no se revela nada sobre el NIF.
   - Si Siteverify falla o tarda más de 10 s, la consulta se rechaza.
 - **Origen:** solo se aceptan peticiones con `Origin` de `ORIGENES` y `Content-Type: application/json`. Así otra
   web no puede lanzar consultas desde el navegador de un visitante ni gastarle su cupo.
-- **Límite por IP exacto** con un Durable Object (`LimiteIp`), uno por IP, o por bloque /64 en IPv6:
+- **Límite por IP exacto, además de Turnstile.** Turnstile frena a los bots, pero cada token resuelto vale para
+  una consulta y existen servicios que resuelven captchas a cambio de dinero. El límite pone un techo a cuántos NIF
+  se pueden probar. Se hace con un Durable Object (`LimiteIp`), uno por IP, o por bloque /64 en IPv6:
   - 1 consulta cada 10 s, lo que equivale como máximo a 6 por minuto y 360 por hora.
   - Cuentan todas las peticiones del propio origen, también las de captcha incorrecto.
   - El valor está en `LIMITES`, en `src/worker.js`.
@@ -105,6 +107,23 @@ búsqueda en KV. Sin un Turnstile válido no se revela nada sobre el NIF.
   `/^\d{8}[A-Z]$/` y la letra de control, y solo se usa como entrada del HMAC. En el navegador todo se pinta con
   `textContent`, nunca con `innerHTML`, y la CSP no permite scripts en línea.
 - **Logs:** `observability` está desactivado y el Worker no registra el NIF.
+
+### Verificado en producción (3-11-2026)
+
+- **Navegador real:** Turnstile se resuelve solo y en español. El NIF ficticio `12345678Z` devuelve «No ha sido
+  designado», con el aviso legal.
+- **Con `curl`:**
+  - Segunda consulta en menos de 10 s: 429.
+  - `Origin` ajeno: 403.
+  - Formulario `text/plain` (CSRF): 403.
+  - Token falso: 400.
+  - Cuerpo de 1 MB: 413.
+  - `http://` redirige con un 301 a `https://`.
+- **Sin vías de descarga del listado:**
+  - Las rutas candidatas dan 404.
+  - Ni el historial de git ni los artefactos de Pages contienen datos.
+  - El Worker desplegado solo usa `MESAS.get`.
+  - `workers.dev` y las *previews* están desactivados.
 
 ## Cómo se genera `data/mesas_electorales.json` a partir de los PDF
 
