@@ -1,0 +1,30 @@
+README.md
+  s_eee5574c85d159::t_b832057520fc3d 45,47-48,69-71,73-78,179-180,186-188
+wrangler.jsonc
+  s_eee5574c85d159::t_9d5b28a2c3a7e0 11-13
+src/worker.js
+  s_eee5574c85d159::t_e84c6532d0cc1d 2
+  s_eee5574c85d159::t_9d5b28a2c3a7e0 1,3,13-14,20-27,131-149,151,155,177
+scripts/build-kv.mjs
+  s_eee5574c85d159::t_04c9d23e549a22 5
+src/nif.js
+  s_eee5574c85d159::t_04c9d23e549a22 1-15
+web/index.html
+  s_eee5574c85d159::t_fa9f43b0d19c95 12-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "71e06b36c0e34543be6f0512635cf6f968365a94",
+  "prompts": {},
+  "sessions": {
+    "s_eee5574c85d159": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ed66deb3-aae4-45db-80f7-da4c6a598900",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Guillermo López Leal <guillermo.lopezleal@vonage.com>"
+    }
+  }
+}
