@@ -289,3 +289,9 @@ LOREG (Ley Orgánica 5/1985), Real Decreto 806/2026 de convocatoria, RD 605/1999
 75 €) e Instrucción 6/2011 de la Junta Electoral Central, modificada por última vez por la Instrucción 2/2025.
 Comprobadas en el BOE el 3 de noviembre de 2026. El sorteo se celebró en el pleno del Ayuntamiento del 3 de
 noviembre de 2026 a las 9:30.
+
+## Licencia
+
+[Licencia Pública de la Unión Europea (EUPL) v1.2](LICENSE), © Ayuntamiento de Aranda de Duero. Es la licencia común de todo el software del Ayuntamiento: ver [arandadeduero/licencia](https://github.com/arandadeduero/licencia).
+
+Las actas y el listado con DNIs no forman parte del repositorio ni de esta licencia: nunca se publican.
